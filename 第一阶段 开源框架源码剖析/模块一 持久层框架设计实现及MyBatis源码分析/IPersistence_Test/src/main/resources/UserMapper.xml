@@ -1,0 +1,19 @@
+<mapper namespace="ki.mybatis.dao.IUserDao">
+
+<!--    sql的唯一标识：namespace.id statementId-->
+    <select id="selectAll" resultType="ki.mybatis.pojo.User">
+        select * from user
+    </select>
+
+    <insert id="insert" resultType="int" parameterType="ki.mybatis.pojo.User">
+        insert into user(username, password, birthday) values (#{username}, #{password}, #{birthday})
+    </insert>
+
+    <insert id="update" resultType="int" parameterType="ki.mybatis.pojo.User">
+        update user set username = #{username}, password = #{password}, birthday = #{birthday} where id = #{id}
+    </insert>
+
+    <delete id="delete" resultType="int" parameterType="ki.mybatis.pojo.User">
+        delete from user where username = #{username}
+    </delete>
+</mapper>

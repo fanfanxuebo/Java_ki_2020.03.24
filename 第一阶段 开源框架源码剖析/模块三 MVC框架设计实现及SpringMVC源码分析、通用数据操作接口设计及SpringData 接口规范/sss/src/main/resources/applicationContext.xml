@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx
+        https://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/data/jpa
+        https://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+">
+
+
+    <!--配置包扫描-->
+    <context:component-scan base-package="ki.springmvc.sss"/>
+
+    <context:property-placeholder location="classpath:jdbc.properties"/>
+
+    <!--配置数据源-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+    <!--entityManagerFactory类似于Mybatis中的SqlSessionFactory
+        entityManager类似于Mybatis中的SqlSession
+    -->
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="packagesToScan" value="ki.springmvc.sss.pojo"/>
+        <!--指定JPA的具体实现，也就是Hibernate-->
+        <property name="persistenceProvider">
+            <bean class="org.hibernate.jpa.HibernatePersistenceProvider"/>
+        </property>
+        <!--JPA方言，不用的JPA对于类似beginTransaction等细节实现起来不一样，
+                所以传入JpaDialect的具体实现-->
+        <property name="jpaDialect">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaDialect"/>
+        </property>
+        <!--配置provider，Hibernate框架的执行细节-->
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+                <!--数据库表是否自动创建-->
+                <property name="generateDdl" value="false"/>
+                <!--指定数据库-->
+                <property name="database" value="MYSQL"/>
+                <!--配置数据库方言，Hibernate可以帮助我们拼接sql，但不同的数据库语法是不同的-->
+                <property name="databasePlatform" value="org.hibernate.dialect.MySQLDialect"/>
+                <!--是否打印sql-->
+                <property name="showSql" value="true"/>
+            </bean>
+        </property>
+    </bean>
+
+    <!--配置dao层实现细节-->
+    <jpa:repositories base-package="ki.springmvc.sss.dao" entity-manager-factory-ref="entityManagerFactory"
+                      transaction-manager-ref="transactionManager"/>
+
+    <!--事务管理器
+        jdbcTemplate/mybatis使用的是DataSourceTransactionManager
+        JPA规范：JpaTransactionManager
+    -->
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+    </bean>
+
+    <!--声明式事务-->
+    <tx:annotation-driven/>
+</beans>
